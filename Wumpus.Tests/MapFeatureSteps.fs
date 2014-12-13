@@ -4,7 +4,7 @@ open System
 open Xunit
 open TickSpec
 open FsUnit.Xunit
-open Wumpus.Core
+open Wumpus.Core.Model
 
 let mutable Number : int = 0
 
@@ -15,4 +15,4 @@ let [<When>] ``I am in room (.*)`` (number : int) =
 
 let [<Then>] ``I should see exits (.*)`` (exits : string) =
     let expected = exits.Split(',') |> Array.map (fun n -> Int32.Parse(n)) |> Array.toList 
-    Model.Rooms.[Number].Exits |> should equal expected
+    Cave.Rooms.[Number].Exits |> should equal expected

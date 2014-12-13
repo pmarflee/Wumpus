@@ -7,6 +7,8 @@ module public Model =
         Exits : int list;
     }
 
+    type Cave = { Rooms : Room [] }
+
     let private roomData = [| [1;4;7];[0;2;9];[1;3;11];
                             [2;4;13];[0;3;5];[4;6;14];
                             [5;7;16];[0;6;8];[7;9;17];
@@ -15,4 +17,4 @@ module public Model =
                             [14;16;19];[6;15;17];[8;16;18];
                             [10;17;19];[12;15;18] |] 
 
-    let Rooms = roomData |> Array.mapi (fun i exits -> { Number = i; Exits = exits })
+    let Cave = { Rooms = roomData |> Array.mapi (fun i exits -> { Number = i; Exits = exits }) }
