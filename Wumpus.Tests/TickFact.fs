@@ -48,6 +48,6 @@ module Features =
     /// Generates scenarios from a feature file
     [<TickFact>]
     let MapFeature () =
-        let source = @"MapFeature.txt"
+        let source = @"CaveFeature.txt"
         let s = File.OpenText(Path.Combine(@"..\..", source))
         definitions.GenerateScenarios(source,s)

@@ -1,7 +1,7 @@
-﻿Feature: Map
+﻿Feature: Cave system
 
-Scenario: Map should be built correctly
-	Given the standard Wumpus map
+Scenario: Cave system should be built correctly
+	Given the standard Wumpus cave system
 	When I am in room <Number>
 	Then I should see exits <Exits>
 

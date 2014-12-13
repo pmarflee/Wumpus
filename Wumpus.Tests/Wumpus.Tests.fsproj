@@ -52,8 +52,8 @@
     <Content Include="packages.config" />
     <Compile Include="TickFact.fs" />
     <Content Include="app.config" />
-    <Content Include="MapFeature.txt" />
-    <Compile Include="MapFeatureSteps.fs" />
+    <Content Include="CaveFeature.txt" />
+    <Compile Include="CaveFeatureSteps.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsUnit.CustomMatchers">

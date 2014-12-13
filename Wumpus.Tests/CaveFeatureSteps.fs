@@ -8,7 +8,7 @@ open Wumpus.Core.Model
 
 let mutable Number : int = 0
 
-let [<Given>] ``the standard Wumpus map`` () = ()
+let [<Given>] ``the standard Wumpus cave system`` () = ()
 
 let [<When>] ``I am in room (.*)`` (number : int) =
     Number <- number
