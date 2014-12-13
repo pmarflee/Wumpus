@@ -14,5 +14,5 @@ let [<When>] ``I am in room (.*)`` (number : int) =
     Number <- number
 
 let [<Then>] ``I should see exits (.*)`` (exits : string) =
-    let expected =exits.Split(',') |> Array.map (fun n -> Int32.Parse(n)) |> Array.toList 
-    Model.Rooms.GetRoom(Number).Exits |> should equal expected
+    let expected = exits.Split(',') |> Array.map (fun n -> Int32.Parse(n)) |> Array.toList 
+    Model.Rooms.[Number].Exits |> should equal expected
