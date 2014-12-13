@@ -27,31 +27,3 @@ Examples:
 	| 17		| 8,16,18  |
 	| 18		| 10,17,19 |
 	| 19		| 12,15,18 |
-
-Scenario: Room links should be bidirectional
-	Given the standard Wumpus cave system
-	When I am in room <Number>
-	Then I should be able to enter and return from all exits
-
-Examples:
-	| Number |
-	| 1		 |
-	| 2		 |
-	| 3		 |
-	| 4		 |
-	| 5		 |
-	| 6		 |
-	| 7		 |
-	| 8		 |
-	| 9		 |
-	| 10	 |
-	| 11	 |
-	| 12	 |
-	| 13	 |
-	| 14	 |
-	| 15	 |
-	| 16	 |
-	| 17	 |
-	| 18	 |
-	| 19	 |
-

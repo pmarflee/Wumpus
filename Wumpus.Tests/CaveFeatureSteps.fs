@@ -18,7 +18,3 @@ let [<When>] ``I am in room (.*)`` (number : int) =
 let [<Then>] ``I should see exits (.*)`` (exits : string) =
     let expected = parseExits exits
     Cave.Rooms.[Number].Exits |> should equal expected
-
-let [<Then>] ``I should be able to enter and return from all exits`` () =
-    for exit in Cave.Rooms.[Number].Exits do
-        Cave.Rooms.[exit].Exits |> should contain Number
