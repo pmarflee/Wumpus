@@ -2,10 +2,7 @@
 
 module public Model = 
 
-    type Room = {
-        Number : int;
-        Exits : int list;
-    }
+    type Room = { Number : int; Exits : int list; }
 
     type Cave = { Rooms : Room [] }
 
@@ -18,3 +15,20 @@ module public Model =
                             [10;17;19];[12;15;18] |] 
 
     let Cave = { Rooms = roomData |> Array.mapi (fun i exits -> { Number = i; Exits = exits }) }
+
+    type MoveResult = Success | Failure
+
+    type Player (cave : Cave) =
+        let mutable currentRoom : Room = cave.Rooms.[0]
+        let cave = cave
+
+        member this.Room = currentRoom
+
+        member this.Move(room : int) =
+            if currentRoom.Exits |> List.exists ((=) room) then
+                currentRoom <- cave.Rooms.[room]
+                MoveResult.Success
+            else
+                MoveResult.Failure
+
+    type Game = { Player : Player; Cave : Cave }
