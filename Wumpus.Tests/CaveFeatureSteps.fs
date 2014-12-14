@@ -9,6 +9,7 @@ open Wumpus.Core.Model
 let mutable Number : int = 0
 
 let parseExits (exits : string) = exits.Split(',') |> Array.map (fun n -> Int32.Parse(n)) |> Array.toList 
+let cave = new Cave()
 
 let [<Given>] ``the standard Wumpus cave system`` () = ()
 
@@ -17,4 +18,4 @@ let [<When>] ``I am in room (.*)`` (number : int) =
 
 let [<Then>] ``I should see exits (.*)`` (exits : string) =
     let expected = parseExits exits
-    Cave.Rooms.[Number].Exits |> should equal expected
+    cave.Rooms.[Number].Exits |> should equal expected
