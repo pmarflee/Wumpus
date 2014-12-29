@@ -56,6 +56,7 @@
     <Compile Include="CaveFeatureSteps.fs" />
     <Compile Include="CaveTests.fs" />
     <Compile Include="PlayerTests.fs" />
+    <Compile Include="GameTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsUnit.CustomMatchers">

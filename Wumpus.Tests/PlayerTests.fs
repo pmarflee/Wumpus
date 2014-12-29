@@ -7,7 +7,7 @@ open Wumpus.Core.Model
 
 type PlayerTestFixture () =
     let cave = new Cave()
-    let player = new Player(cave)
+    let player = new Player(cave, cave.Rooms.[0])
 
     [<Fact>]
     let ``Player should be able to move to a different room if a valid exit is selected`` () =

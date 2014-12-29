@@ -1,5 +1,6 @@
 ﻿namespace Wumpus.Core
 
+open System
 open System.Collections.Generic
 
 module public Model = 
@@ -27,10 +28,9 @@ module public Model =
 
     type MoveResult = Success | Failure
 
-    type Player (cave : Cave) =
-        let mutable currentRoom : Room = cave.Rooms.[0]
-        let cave = cave
+    type Player (cave : Cave, room : Room) =
 
+        let mutable currentRoom : Room = room
         member this.Room = currentRoom
 
         member this.Move(room : int) =
@@ -43,4 +43,22 @@ module public Model =
         member this.Senses
             with get() = currentRoom.Exits |> List.collect (fun exit -> cave.Rooms.[exit].Hazards |> List.ofSeq)
 
-    type Game = { Player : Player; Cave : Cave }
+    type Game (cave : Cave) =
+        let rnd = new Random()
+        let getRandomRoom = fun () -> cave.Rooms.[rnd.Next(0, cave.Rooms.GetUpperBound(0))]
+        let player = new Player(cave, getRandomRoom())
+        let addHazard hazard times = 
+            for i = 1 to times do
+                let mutable room = getRandomRoom()
+                while player.Room = room do
+                    room <- getRandomRoom()
+                room.Hazards.Add(hazard)
+
+        do
+            addHazard Hazard.Wumpus 1
+            addHazard Hazard.Bat 2
+            addHazard Hazard.Pit 2
+
+        member this.Player = player
+
+        member this.Cave = cave
