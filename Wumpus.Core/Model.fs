@@ -25,40 +25,62 @@ module public Model =
         let rooms = roomData |> Array.mapi (fun i exits -> new Room(i, exits)) 
 
         member this.Rooms with get() = rooms
+        member this.AddHazard roomNumber hazard = this.Rooms.[roomNumber].Hazards.Add(hazard)
 
     type MoveResult = Success | Failure
 
-    type Player (cave : Cave, room : Room) =
+    type Player (room : Room) =
 
         let mutable currentRoom : Room = room
         member this.Room = currentRoom
 
-        member this.Move(room : int) =
-            if currentRoom.Exits |> List.exists ((=) room) then
-                currentRoom <- cave.Rooms.[room]
+        member this.Move(roomNumber : int, cave : Cave) =
+            if currentRoom.Exits |> List.exists ((=) roomNumber) then
+                currentRoom <- cave.Rooms.[roomNumber]
                 MoveResult.Success
             else
                 MoveResult.Failure
 
-        member this.Senses
-            with get() = currentRoom.Exits |> List.collect (fun exit -> cave.Rooms.[exit].Hazards |> List.ofSeq)
+        member this.Senses (cave : Cave) =
+            currentRoom.Exits |> List.collect (fun exit -> cave.Rooms.[exit].Hazards |> List.ofSeq)
 
-    type Game (cave : Cave) =
+    type GameResult = Won | Lost
+
+    type GameState = 
+        | InProgress 
+        | Over of GameResult
+
+    let init = fun () ->
+        let cave = new Cave()
         let rnd = new Random()
         let getRandomRoom = fun () -> cave.Rooms.[rnd.Next(0, cave.Rooms.GetUpperBound(0))]
-        let player = new Player(cave, getRandomRoom())
+        let player = new Player(getRandomRoom())
         let addHazard hazard times = 
             for i = 1 to times do
                 let mutable room = getRandomRoom()
                 while player.Room = room do
                     room <- getRandomRoom()
-                room.Hazards.Add(hazard)
+                cave.AddHazard room.Number hazard
+        addHazard Hazard.Wumpus 1
+        addHazard Hazard.Bat 2
+        addHazard Hazard.Pit 2
+        cave, player
 
-        do
-            addHazard Hazard.Wumpus 1
-            addHazard Hazard.Bat 2
-            addHazard Hazard.Pit 2
+    type Game (init : unit -> Cave * Player) =
+        let cave, player = init()
+        let mutable state = GameState.InProgress
 
         member this.Player = player
 
         member this.Cave = cave
+
+        member this.State = state
+
+        member this.MovePlayer roomNumber = 
+            if state <> GameState.InProgress then
+                MoveResult.Failure
+            else
+                let result = player.Move(roomNumber, cave)
+                if player.Room.Hazards.Contains(Hazard.Pit) then
+                    state <- GameState.Over(GameResult.Lost)
+                result
