@@ -13,6 +13,7 @@ module public Model =
         member this.Number = number
         member this.Exits = exits
         member this.Hazards with get() = hazards
+        member this.ContainsHazard(hazard) = hazards.Contains(hazard)
 
     type Cave () =
         let roomData = [| [1;4;7];[0;2;9];[1;3;11];
@@ -26,6 +27,10 @@ module public Model =
 
         member this.Rooms with get() = rooms
         member this.AddHazard roomNumber hazard = this.Rooms.[roomNumber].Hazards.Add(hazard)
+        member this.MoveBat roomNumberFrom roomNumberTo =
+            match this.Rooms.[roomNumberFrom].Hazards.Remove(Hazard.Bat) with
+            | true -> this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Bat)
+            | false -> failwith "No bat present in room"
 
     type MoveResult = Success | Failure
 
@@ -66,9 +71,14 @@ module public Model =
         addHazard Hazard.Pit 2
         cave, player
 
-    type Game (init : unit -> Cave * Player) =
+    let batRoomMoveCalculator (cave : Cave) = 
+        (new Random()).Next(0, cave.Rooms.GetUpperBound(0))
+
+    type Game (init : unit -> Cave * Player, batRoomMoveCalculator : Cave -> int) =
         let cave, player = init()
         let mutable state = GameState.InProgress
+
+        new() = Game(init, batRoomMoveCalculator)
 
         member this.Player = player
 
@@ -80,7 +90,12 @@ module public Model =
             if state <> GameState.InProgress then
                 MoveResult.Failure
             else
-                let result = player.Move(roomNumber, cave)
-                if player.Room.Hazards.Contains(Hazard.Pit) then
+                let mutable result = player.Move(roomNumber, cave)
+                if player.Room.ContainsHazard(Hazard.Pit) then
                     state <- GameState.Over(GameResult.Lost)
+                elif player.Room.ContainsHazard(Hazard.Bat) then
+                    let newRoomNumber = batRoomMoveCalculator(cave)
+                    let oldRoomNumber = player.Room.Number
+                    result <- this.MovePlayer(newRoomNumber)
+                    cave.MoveBat oldRoomNumber player.Room.Number
                 result

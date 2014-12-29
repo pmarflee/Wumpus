@@ -38,13 +38,21 @@ type InitTestFixture () =
 
 type GameTestFixture () =
 
+    let initWithHazard roomNumber hazard = fun () ->
+        let cave = new Cave()
+        cave.AddHazard roomNumber hazard
+        let player = new Player(cave.Rooms.[0])
+        cave, player
+
     [<Fact>]
     let ``Player should lose game if they enter a room containing a pit`` () =
-        let init = fun () ->
-            let cave = new Cave()
-            cave.AddHazard 1 Hazard.Pit
-            let player = new Player(cave.Rooms.[0])
-            cave, player
-        let game = new Game(init)
+        let game = new Game(initWithHazard 1 Hazard.Pit, batRoomMoveCalculator)
         game.MovePlayer(1) |> ignore
         game.State |> should equal (GameState.Over(GameResult.Lost))
+
+    [<Fact>]
+    let ``Player and bat should be carried into another room if they enter a room containing a bat`` () =
+        let game = new Game(initWithHazard 1 Hazard.Bat, fun cave -> 2)
+        game.MovePlayer(1) |> ignore
+        game.Player.Room.Number |> should equal 2
+        game.Player.Room.Hazards |> should contain (Hazard.Bat)
