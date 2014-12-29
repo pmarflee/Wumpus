@@ -46,13 +46,32 @@ type GameTestFixture () =
 
     [<Fact>]
     let ``Player should lose game if they enter a room containing a pit`` () =
-        let game = new Game(initWithHazard 1 Hazard.Pit, batRoomMoveCalculator)
+        let game = new Game(initWithHazard 1 Hazard.Pit, batRoomMoveCalculator, wumpusEatCalculator)
         game.MovePlayer(1) |> ignore
         game.State |> should equal (GameState.Over(GameResult.Lost))
 
     [<Fact>]
     let ``Player and bat should be carried into another room if they enter a room containing a bat`` () =
-        let game = new Game(initWithHazard 1 Hazard.Bat, fun cave -> 2)
+        let batRoomMoveCalculator = fun cave -> 2
+        let game = new Game(initWithHazard 1 Hazard.Bat, batRoomMoveCalculator, wumpusEatCalculator)
         game.MovePlayer(1) |> ignore
         game.Player.Room.Number |> should equal 2
         game.Player.Room.Hazards |> should contain (Hazard.Bat)
+
+    [<Fact>]
+    let ``Player should lose game if they enter a room containing a wumpus who eats them`` () =
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, batRoomMoveCalculator, fun () -> true)
+        game.MovePlayer(1) |> ignore
+        game.State |> should equal (GameState.Over(GameResult.Lost))
+
+    [<Fact>]
+    let ``Player should not lose game if they enter a room containing a wumpus who doesn't eat them`` () =
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, batRoomMoveCalculator, fun () -> false)
+        game.MovePlayer(1) |> ignore
+        game.State |> should equal (GameState.InProgress)
+
+    [<Fact>]
+    let ``Wumpus should move to an adjoining room if the player enters a room containing a wumpus who doesn't eat them`` () =
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, batRoomMoveCalculator, fun () -> false)
+        game.MovePlayer(1) |> ignore
+        game.Player.Senses(game.Cave) |> should contain (Hazard.Wumpus)
