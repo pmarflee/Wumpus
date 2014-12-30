@@ -82,7 +82,7 @@ module public Model =
         (new Random()).Next(0, cave.Rooms.GetUpperBound(0))
 
     let wumpusEatCalculator = fun () ->
-        if (new Random()).Next(0, 1) = 1 then
+        if (new Random()).Next(0, 3) = 0 then
             true
         else
             false
