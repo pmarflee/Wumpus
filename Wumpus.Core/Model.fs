@@ -32,10 +32,12 @@ module public Model =
             match this.Rooms.[roomNumberFrom].Hazards.Remove(Hazard.Bat) with
             | true -> this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Bat)
             | false -> failwith "No bat present in room"
-        member this.WumpusRoom = rooms |> Array.find (fun room -> room.ContainsHazard(Hazard.Wumpus))
+        member this.WumpusRoom = rooms |> Array.tryFind (fun room -> room.ContainsHazard(Hazard.Wumpus))
         member this.MoveWumpus roomNumberTo =
-           this.WumpusRoom.Hazards.Remove(Hazard.Wumpus) |> ignore
-           this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Wumpus)
+           match this.WumpusRoom with
+           | Some(room) -> room.Hazards.Remove(Hazard.Wumpus) |> ignore
+                           this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Wumpus)
+           | None -> failwith "No wumpus present"
 
     type Player (cave : Cave, room : Room) =
 
@@ -81,7 +83,7 @@ module public Model =
     let calculateWumpusAction (cave : Cave) =
         let choice = (new Random()).Next(0, 3)
         if choice = 0 then WumpusAction.Stay
-        else WumpusAction.Move(cave.WumpusRoom.Exits.[choice - 1])
+        else WumpusAction.Move(cave.WumpusRoom.Value.Exits.[choice - 1])
 
     type Game (init : unit -> Cave * Player, calculateBatRoomMove : Cave -> Room -> Room, calculateWumpusAction : Cave -> WumpusAction) =
         let cave, player = init()
@@ -120,12 +122,13 @@ module public Model =
             if not <| player.Room.HasExit roomNumber then
                 invalidArg "roomNumber" (sprintf "Can only shoot arrow into rooms %s" (String.Join(",", player.Room.Exits))) 
             if cave.Rooms.[roomNumber].ContainsHazard(Hazard.Wumpus) then
+                cave.WumpusRoom.Value.Hazards.Remove(Hazard.Wumpus) |> ignore
                 this.EndGame(GameResult.Won)
             else
                match calculateWumpusAction cave with
                    | Move(newRoomNumber) -> 
                         cave.MoveWumpus newRoomNumber
-                        if player.Room = cave.WumpusRoom then 
+                        if player.Room = cave.WumpusRoom.Value then 
                             this.EndGame(GameResult.Lost)
                    | Stay -> ()
 

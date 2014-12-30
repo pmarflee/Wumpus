@@ -87,13 +87,13 @@ type MovePlayerTestFixture () =
 
     [<Fact>]
     let ``Player should not lose game if they enter a room containing a wumpus who doesn't eat them`` () =
-        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Exits.[1]))
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Value.Exits.[1]))
         game.MovePlayer(1)
         game.State |> should equal (GameState.InProgress)
 
     [<Fact>]
     let ``Wumpus should move to an adjoining room if the player enters a room containing a wumpus who doesn't eat them`` () =
-        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Exits.[1]))
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Value.Exits.[1]))
         game.MovePlayer(1)
         game.Player.Senses |> should contain (Hazard.Wumpus)
 
@@ -104,6 +104,12 @@ type PlayerShootArrowTestFixture () =
         let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, calculateWumpusAction)
         game.ShootArrow 1
         game.State |> should equal (GameState.Over(GameResult.Won))
+
+    [<Fact>]
+    let ``Wumpus should be removed from the room that it occupys if the player shoots it`` () =
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, calculateWumpusAction)
+        game.ShootArrow 1
+        game.Cave.WumpusRoom |> should equal None
 
     [<Fact>]
     let ``Player should not be allowed to shoot an arrow into a room that is not adjacent to their current location`` () =
@@ -124,7 +130,7 @@ type PlayerShootArrowTestFixture () =
 
     [<Fact>]
     let ``Player should not lose game if they miss the wumpus and startle it into moving into another room`` () =
-        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Exits.[2]))
+        let game = new Game(initWithHazard 1 Hazard.Wumpus, calculateBatRoomMove, fun cave -> WumpusAction.Move(cave.WumpusRoom.Value.Exits.[2]))
         game.ShootArrow 4
         game.State |> should not' (equal (GameState.Over(GameResult.Lost)))
 
