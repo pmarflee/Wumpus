@@ -12,6 +12,7 @@ module public Model =
 
         member this.Number = number
         member this.Exits = exits
+        member this.HasExit roomNumber = exits |> List.exists ((=) roomNumber)
         member this.Hazards with get() = hazards
         member this.ContainsHazard(hazard) = hazards.Contains(hazard)
 
@@ -31,13 +32,10 @@ module public Model =
             match this.Rooms.[roomNumberFrom].Hazards.Remove(Hazard.Bat) with
             | true -> this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Bat)
             | false -> failwith "No bat present in room"
-        member this.MoveWumpus roomNumberFrom =
-           let roomFrom = this.Rooms.[roomNumberFrom] 
-           match roomFrom.Hazards.Remove(Hazard.Wumpus) with 
-           | true ->
-               let roomTo = this.Rooms.[roomFrom.Exits.[(new Random()).Next(0, 2)]]
-               roomTo.Hazards.Add(Hazard.Wumpus)
-           | false -> failwith "No wumpus present in room"
+        member this.WumpusRoom = rooms |> Array.find (fun room -> room.ContainsHazard(Hazard.Wumpus))
+        member this.MoveWumpus roomNumberTo =
+           this.WumpusRoom.Hazards.Remove(Hazard.Wumpus) |> ignore
+           this.Rooms.[roomNumberTo].Hazards.Add(Hazard.Wumpus)
 
     type Player (cave : Cave, room : Room) =
 
@@ -72,17 +70,24 @@ module public Model =
         addHazard Hazard.Pit 2
         cave, player
 
-    let batRoomMoveCalculator (cave : Cave) (room : Room) = 
+    let calculateBatRoomMove (cave : Cave) (room : Room) = 
         let rooms = cave.Rooms.Length
         cave.Rooms.[(room.Number + (new Random()).Next(1, rooms - 1)) % rooms]
 
-    let wumpusMoveCalculator = fun () -> (new Random()).Next(0, 3) <> 0
+    type WumpusAction =
+        | Stay
+        | Move of int
 
-    type Game (init : unit -> Cave * Player, batRoomMoveCalculator : Cave -> Room -> Room, wumpusMoveCalculator : unit -> bool) =
+    let calculateWumpusAction (cave : Cave) =
+        let choice = (new Random()).Next(0, 3)
+        if choice = 0 then WumpusAction.Stay
+        else WumpusAction.Move(cave.WumpusRoom.Exits.[choice - 1])
+
+    type Game (init : unit -> Cave * Player, calculateBatRoomMove : Cave -> Room -> Room, calculateWumpusAction : Cave -> WumpusAction) =
         let cave, player = init()
         let mutable state = GameState.InProgress
 
-        new() = Game(init, batRoomMoveCalculator, wumpusMoveCalculator)
+        new() = Game(init, calculateBatRoomMove, calculateWumpusAction)
 
         member this.Player = player
 
@@ -101,17 +106,28 @@ module public Model =
                     if room.ContainsHazard(Hazard.Pit) then
                         this.EndGame(GameResult.Lost)
                     elif room.ContainsHazard(Hazard.Wumpus) then
-                        let wumpusMoves = wumpusMoveCalculator()
-                        if wumpusMoves then
-                            cave.MoveWumpus room.Number
-                        else
-                            this.EndGame(GameResult.Lost)
+                        match calculateWumpusAction cave with
+                        | Move(newRoomNumber) -> cave.MoveWumpus newRoomNumber
+                        | Stay -> this.EndGame(GameResult.Lost)
                     if state = GameState.InProgress && room.ContainsHazard(Hazard.Bat) then
-                        let newRoom = batRoomMoveCalculator cave room
+                        let newRoom = calculateBatRoomMove cave room
                         movePlayer newRoom.Number
                         cave.MoveBat room.Number newRoom.Number
 
             movePlayer roomNumber
+
+        member this.ShootArrow roomNumber =
+            if not <| player.Room.HasExit roomNumber then
+                invalidArg "roomNumber" (sprintf "Can only shoot arrow into rooms %s" (String.Join(",", player.Room.Exits))) 
+            if cave.Rooms.[roomNumber].ContainsHazard(Hazard.Wumpus) then
+                this.EndGame(GameResult.Won)
+            else
+               match calculateWumpusAction cave with
+                   | Move(newRoomNumber) -> 
+                        cave.MoveWumpus newRoomNumber
+                        if player.Room = cave.WumpusRoom then 
+                            this.EndGame(GameResult.Lost)
+                   | Stay -> ()
 
         member private this.EndGame(result : GameResult) =
             state <- GameState.Over(result)
