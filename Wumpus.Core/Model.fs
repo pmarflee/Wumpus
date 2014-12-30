@@ -82,11 +82,7 @@ module public Model =
         let rooms = cave.Rooms.Length
         cave.Rooms.[(room.Number + (new Random()).Next(1, rooms - 1)) % rooms]
 
-    let wumpusEatCalculator = fun () ->
-        if (new Random()).Next(0, 3) = 0 then
-            true
-        else
-            false
+    let wumpusEatCalculator = fun () -> (new Random()).Next(0, 3) = 0
 
     type Game (init : unit -> Cave * Player, batRoomMoveCalculator : Cave -> Room -> Room, wumpusEatCalculator : unit -> bool) =
         let cave, player = init()
