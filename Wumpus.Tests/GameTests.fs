@@ -52,7 +52,7 @@ type GameTestFixture () =
 
     [<Fact>]
     let ``Player and bat should be carried into another room if they enter a room containing a bat`` () =
-        let batRoomMoveCalculator = fun cave -> 2
+        let batRoomMoveCalculator = fun (cave : Cave) room -> cave.Rooms.[2]
         let game = new Game(initWithHazard 1 Hazard.Bat, batRoomMoveCalculator, wumpusEatCalculator)
         game.MovePlayer(1) |> ignore
         game.Player.Room.Number |> should equal 2

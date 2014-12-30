@@ -78,8 +78,9 @@ module public Model =
         addHazard Hazard.Pit 2
         cave, player
 
-    let batRoomMoveCalculator (cave : Cave) = 
-        (new Random()).Next(0, cave.Rooms.GetUpperBound(0))
+    let batRoomMoveCalculator (cave : Cave) (room : Room) = 
+        let rooms = cave.Rooms.Length
+        cave.Rooms.[(room.Number + (new Random()).Next(1, rooms - 1)) % rooms]
 
     let wumpusEatCalculator = fun () ->
         if (new Random()).Next(0, 3) = 0 then
@@ -87,7 +88,7 @@ module public Model =
         else
             false
 
-    type Game (init : unit -> Cave * Player, batRoomMoveCalculator : Cave -> int, wumpusEatCalculator : unit -> bool) =
+    type Game (init : unit -> Cave * Player, batRoomMoveCalculator : Cave -> Room -> Room, wumpusEatCalculator : unit -> bool) =
         let cave, player = init()
         let mutable state = GameState.InProgress
 
@@ -115,10 +116,9 @@ module public Model =
                     else
                         cave.MoveWumpus room.Number
                 if room.ContainsHazard(Hazard.Bat) then
-                    let newRoomNumber = batRoomMoveCalculator(cave)
-                    let oldRoomNumber = room.Number
-                    this.MovePlayer(newRoomNumber)
-                    cave.MoveBat oldRoomNumber newRoomNumber
+                    let newRoom = batRoomMoveCalculator cave room
+                    this.MovePlayer(newRoom.Number)
+                    cave.MoveBat room.Number newRoom.Number
 
         member private this.EndGame(result : GameResult) =
             state <- GameState.Over(result)
