@@ -41,19 +41,19 @@ module public Model =
 
     type MoveResult = Success | Failure
 
-    type Player (room : Room) =
+    type Player (cave : Cave, room : Room) =
 
         let mutable currentRoom : Room = room
         member this.Room = currentRoom
 
-        member this.Move(roomNumber : int, cave : Cave) =
+        member this.Move(roomNumber : int) =
             if currentRoom.Exits |> List.exists ((=) roomNumber) then
                 currentRoom <- cave.Rooms.[roomNumber]
                 MoveResult.Success
             else
                 MoveResult.Failure
 
-        member this.Senses (cave : Cave) =
+        member this.Senses =
             currentRoom.Exits |> List.collect (fun exit -> cave.Rooms.[exit].Hazards |> List.ofSeq)
 
     type GameResult = Won | Lost
@@ -66,7 +66,7 @@ module public Model =
         let cave = new Cave()
         let rnd = new Random()
         let getRandomRoom = fun () -> cave.Rooms.[rnd.Next(0, cave.Rooms.GetUpperBound(0))]
-        let player = new Player(getRandomRoom())
+        let player = new Player(cave, getRandomRoom())
         let addHazard hazard times = 
             for i = 1 to times do
                 let mutable room = getRandomRoom()
@@ -99,7 +99,7 @@ module public Model =
         member this.MovePlayer roomNumber = 
             if state <> GameState.InProgress then ()
             else
-                player.Move(roomNumber, cave) |> ignore
+                player.Move(roomNumber) |> ignore
                 let room = player.Room
                 if room.ContainsHazard(Hazard.Pit) then
                     this.EndGame(GameResult.Lost)

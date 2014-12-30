@@ -41,7 +41,7 @@ type GameTestFixture () =
     let initWithHazard roomNumber hazard = fun () ->
         let cave = new Cave()
         cave.AddHazard roomNumber hazard
-        let player = new Player(cave.Rooms.[0])
+        let player = new Player(cave, cave.Rooms.[0])
         cave, player
 
     [<Fact>]
@@ -74,4 +74,4 @@ type GameTestFixture () =
     let ``Wumpus should move to an adjoining room if the player enters a room containing a wumpus who doesn't eat them`` () =
         let game = new Game(initWithHazard 1 Hazard.Wumpus, batRoomMoveCalculator, fun () -> false)
         game.MovePlayer(1) |> ignore
-        game.Player.Senses(game.Cave) |> should contain (Hazard.Wumpus)
+        game.Player.Senses |> should contain (Hazard.Wumpus)
