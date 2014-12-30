@@ -95,8 +95,7 @@ module public Model =
                 invalidArg "roomNumber" (sprintf "Can only move to rooms %s" (String.Join(",", player.Room.Exits)))
 
             let rec movePlayer roomNumber = 
-                if state <> GameState.InProgress then ()
-                else
+                if state = GameState.InProgress then
                     player.Move(roomNumber)
                     let room = player.Room
                     if room.ContainsHazard(Hazard.Pit) then
