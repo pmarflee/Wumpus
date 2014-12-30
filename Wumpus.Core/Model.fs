@@ -64,7 +64,7 @@ module public Model =
         let addHazard hazard times = 
             for i = 1 to times do
                 let mutable room = getRandomRoom()
-                while player.Room = room do
+                while player.Room = room || room.Hazards.Count > 0 do
                     room <- getRandomRoom()
                 cave.AddHazard room.Number hazard
         addHazard Hazard.Wumpus 1

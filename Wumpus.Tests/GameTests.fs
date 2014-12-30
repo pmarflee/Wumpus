@@ -36,6 +36,10 @@ type InitTestFixture () =
     let ``Player should not be placed in the same room as a hazard when the game begins`` () =
         player.Room.Hazards.Count |> should equal 0
 
+    [<Fact>]
+    let ``All hazards should be placed in separate rooms when the game begins`` () =
+        cave.Rooms |> Array.forall (fun room -> room.Hazards.Count = 1)
+
 type GameTestFixture () =
 
     let initWithHazard roomNumber hazard = fun () ->
